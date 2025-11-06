@@ -51,3 +51,8 @@ htmlcov/
 
 # Claude Code
 .claude/
+CLAUDE.md
+
+# Test notebooks
+backend/tests/gemtest.ipynb
+*.ipynb
