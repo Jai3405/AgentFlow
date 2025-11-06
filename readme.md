@@ -226,7 +226,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Contact
 
-**Jai Patel** - [GitHub](https://github.com/Jai3405)
+**Jai** - [GitHub](https://github.com/Jai3405)
 
 Project Link: [https://github.com/Jai3405/AgentFlow](https://github.com/Jai3405/AgentFlow)
 
