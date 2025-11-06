@@ -29,6 +29,20 @@ class IntegrationStatusEnum(str, enum.Enum):
     ERROR = "error"
     PENDING = "pending"
 
+class ExecutionStatusEnum(str, enum.Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    PAUSED = "paused"
+
+class TriggerTypeEnum(str, enum.Enum):
+    MANUAL = "manual"
+    SCHEDULED = "scheduled"
+    WEBHOOK = "webhook"
+    API = "api"
+
 class ConversationDB(Base):
     """Database model for conversation state"""
     __tablename__ = "conversations"
@@ -131,3 +145,79 @@ class WebhookEventDB(Base):
 
     # Relationships
     webhook = relationship("WebhookRegistrationDB", back_populates="events_log")
+
+class WorkflowExecutionDB(Base):
+    """Database model for workflow executions"""
+    __tablename__ = "workflow_executions"
+
+    execution_id = Column(String, primary_key=True, index=True)
+    workflow_id = Column(String, ForeignKey("workflows.id"), index=True)
+    status = Column(Enum(ExecutionStatusEnum), default=ExecutionStatusEnum.PENDING)
+    trigger_type = Column(Enum(TriggerTypeEnum), default=TriggerTypeEnum.MANUAL)
+
+    # Execution state
+    current_step = Column(String, nullable=True)
+    completed_steps = Column(JSON, default=list)
+    failed_steps = Column(JSON, default=list)
+
+    # Timing
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    execution_time_seconds = Column(Float, nullable=True)
+
+    # Data
+    input_data = Column(JSON, nullable=True)
+    step_outputs = Column(JSON, nullable=True)
+    variables = Column(JSON, nullable=True)
+
+    # Logs and errors
+    error_message = Column(Text, nullable=True)
+    error_step = Column(String, nullable=True)
+
+    # Metadata
+    progress = Column(Float, default=0.0)
+    metadata = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+
+    # Relationships
+    workflow = relationship("WorkflowDB", backref="executions")
+    logs = relationship("ExecutionLogDB", back_populates="execution", cascade="all, delete-orphan")
+
+class ExecutionLogDB(Base):
+    """Database model for execution logs"""
+    __tablename__ = "execution_logs"
+
+    id = Column(String, primary_key=True)
+    execution_id = Column(String, ForeignKey("workflow_executions.execution_id"))
+    timestamp = Column(DateTime, default=datetime.now)
+    level = Column(String)  # info, warning, error, debug
+    message = Column(Text)
+    step_id = Column(String, nullable=True)
+    metadata = Column(JSON, nullable=True)
+
+    # Relationships
+    execution = relationship("WorkflowExecutionDB", back_populates="logs")
+
+class ScheduledJobDB(Base):
+    """Database model for scheduled workflow jobs"""
+    __tablename__ = "scheduled_jobs"
+
+    job_id = Column(String, primary_key=True, index=True)
+    workflow_id = Column(String, ForeignKey("workflows.id"))
+    schedule_type = Column(String)  # cron, interval, once
+    schedule_config = Column(JSON)  # cron expression, interval config, etc.
+    input_data = Column(JSON, nullable=True)
+    enabled = Column(Boolean, default=True)
+
+    # Execution tracking
+    last_execution = Column(DateTime, nullable=True)
+    next_execution = Column(DateTime, nullable=True)
+    execution_count = Column(String, default="0")
+    failure_count = Column(String, default="0")
+
+    # Metadata
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    # Relationships
+    workflow = relationship("WorkflowDB", backref="scheduled_jobs")

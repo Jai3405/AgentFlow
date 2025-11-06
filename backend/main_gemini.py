@@ -10,11 +10,15 @@ from core.workflow_generator import WorkflowGenerator
 from models.conversation import ConversationState, Message
 from database.base import Base, engine
 from api.integrations import router as integrations_router
+from api.execution import router as execution_router
+from api.monitoring import router as monitoring_router
 
 app = FastAPI(title="AgentFlow API (Gemini)", version="1.0.0")
 
-# Include integration router
+# Include routers
 app.include_router(integrations_router)
+app.include_router(execution_router)
+app.include_router(monitoring_router)
 
 # Create database tables on startup
 @app.on_event("startup")
