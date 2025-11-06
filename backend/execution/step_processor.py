@@ -3,7 +3,7 @@ Step processor for executing individual workflow steps
 Handles different step types and integrations
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import re
 import json
 
