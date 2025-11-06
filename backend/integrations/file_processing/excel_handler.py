@@ -13,6 +13,11 @@ try:
     OPENPYXL_AVAILABLE = True
 except ImportError:
     OPENPYXL_AVAILABLE = False
+    Workbook = None
+    load_workbook = None
+    Font = None
+    PatternFill = None
+    Alignment = None
     print("Warning: openpyxl not installed. Excel support disabled.")
 
 try:
