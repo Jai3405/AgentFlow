@@ -69,7 +69,7 @@ class MessageDB(Base):
     role = Column(Enum(MessageRoleEnum))
     content = Column(Text)
     timestamp = Column(DateTime, default=datetime.now)
-    metadata = Column(JSON, nullable=True)
+    message_metadata = Column(JSON, nullable=True)
 
     # Relationships
     conversation = relationship("ConversationDB", back_populates="messages")
@@ -84,7 +84,7 @@ class WorkflowDB(Base):
     description = Column(Text, nullable=True)
     steps = Column(JSON)
     connections = Column(JSON, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    workflow_metadata = Column(JSON, nullable=True)
     status = Column(String, default="draft")  # draft, ready, deployed, archived
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
@@ -103,7 +103,7 @@ class IntegrationConfigDB(Base):
     status = Column(Enum(IntegrationStatusEnum), default=IntegrationStatusEnum.DISCONNECTED)
     credentials = Column(JSON)  # Encrypted credentials
     settings = Column(JSON, nullable=True)  # Additional settings
-    metadata = Column(JSON, nullable=True)  # Provider-specific metadata
+    integration_metadata = Column(JSON, nullable=True)  # Provider-specific metadata
     is_active = Column(Boolean, default=True)
     last_connected_at = Column(DateTime, nullable=True)
     last_error = Column(Text, nullable=True)
@@ -122,7 +122,7 @@ class WebhookRegistrationDB(Base):
     is_active = Column(Boolean, default=True)
     retry_count = Column(String, default="3")
     timeout_seconds = Column(String, default="30")
-    metadata = Column(JSON, nullable=True)
+    webhook_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -176,7 +176,7 @@ class WorkflowExecutionDB(Base):
 
     # Metadata
     progress = Column(Float, default=0.0)
-    metadata = Column(JSON, nullable=True)
+    execution_metadata = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.now)
 
     # Relationships
@@ -193,7 +193,7 @@ class ExecutionLogDB(Base):
     level = Column(String)  # info, warning, error, debug
     message = Column(Text)
     step_id = Column(String, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    log_metadata = Column(JSON, nullable=True)
 
     # Relationships
     execution = relationship("WorkflowExecutionDB", back_populates="logs")

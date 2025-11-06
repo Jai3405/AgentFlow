@@ -29,7 +29,14 @@ class EntityExtractorGemini:
         api_key = os.getenv('GEMINI_API_KEY')
         if api_key:
             genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-pro')
+            # Try newer models first
+            try:
+                self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+            except:
+                try:
+                    self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
+                except:
+                    self.model = genai.GenerativeModel('gemini-1.5-flash-001')
             self.llm_enabled = True
         else:
             print("Warning: GEMINI_API_KEY not found. Using regex-only entity extraction.")

@@ -29,3 +29,46 @@ export interface WorkflowConnection {
   to: string;
   condition?: string;
 }
+
+export interface WorkflowExecution {
+  execution_id: string;
+  workflow_id: string;
+  workflow_name?: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'paused';
+  trigger_type: 'manual' | 'scheduled' | 'webhook' | 'api';
+  started_at: string;
+  completed_at?: string;
+  progress: number;
+  current_step?: string;
+  error_message?: string;
+}
+
+export interface ExecutionLog {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warning' | 'error' | 'debug';
+  message: string;
+  step_id?: string;
+}
+
+export interface ScheduledJob {
+  id: string;
+  workflow_id: string;
+  workflow_name?: string;
+  schedule_type: 'cron' | 'interval' | 'one_time';
+  schedule: string;
+  is_enabled: boolean;
+  next_run?: string;
+  last_run?: string;
+  execution_count: number;
+  success_count: number;
+  failure_count: number;
+}
+
+export interface AnalyticsMetrics {
+  total_executions: number;
+  success_rate: number;
+  average_duration: number;
+  active_executions: number;
+  failed_executions: number;
+}
