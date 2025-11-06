@@ -57,12 +57,12 @@ async def chat(request: ChatRequest):
     try:
         # Get or create conversation
         conv_id = request.conversation_id or str(uuid.uuid4())
-        
+
         # Process the message
         response_data = await conversation_manager.process_message(
             conv_id, request.message
         )
-        
+
         return ChatResponse(
             response=response_data["response"],
             conversation_id=conv_id,
@@ -71,6 +71,8 @@ async def chat(request: ChatRequest):
             workflow_preview=response_data.get("workflow_preview")
         )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/conversations/{conversation_id}")

@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 import re
 import os
 import json
-import google.generativeai as genai
+from google import genai
 
 
 class EntityExtractorGemini:
@@ -28,18 +28,12 @@ class EntityExtractorGemini:
         # Initialize Gemini API
         api_key = os.getenv('GEMINI_API_KEY')
         if api_key:
-            genai.configure(api_key=api_key)
-            # Try newer models first
-            try:
-                self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
-            except:
-                try:
-                    self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
-                except:
-                    self.model = genai.GenerativeModel('gemini-1.5-flash-001')
+            self.client = genai.Client(api_key=api_key)
+            self.model_name = 'gemini-2.5-flash'
             self.llm_enabled = True
         else:
             print("Warning: GEMINI_API_KEY not found. Using regex-only entity extraction.")
+            self.client = None
             self.llm_enabled = False
 
     async def extract(self, text: str, intent: str = None) -> Dict[str, List[Tuple[str, float]]]:
@@ -98,7 +92,10 @@ Only include entities you find. Provide confidence based on:
 
 Response (JSON only):"""
 
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
 
             # Parse JSON response
             response_text = response.text.strip()

@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Dict, List, Optional, Tuple
-import google.generativeai as genai
+from google import genai
 from sqlalchemy.orm import Session
 from models.conversation import ConversationState, Message, MessageRole
 from services.intent_classifier import IntentClassifier
@@ -44,18 +44,12 @@ class ConversationManagerGemini:
         # Initialize Gemini API
         api_key = os.getenv('GEMINI_API_KEY')
         if api_key:
-            genai.configure(api_key=api_key)
-            # Try newer models first, fallback to stable
-            try:
-                self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
-            except:
-                try:
-                    self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
-                except:
-                    self.model = genai.GenerativeModel('gemini-1.5-flash-001')
+            self.client = genai.Client(api_key=api_key)
+            self.model_name = 'gemini-2.5-flash'
             self.llm_enabled = True
         else:
             print("Warning: GEMINI_API_KEY not found. Using rule-based responses.")
+            self.client = None
             self.llm_enabled = False
 
     def _get_db_session(self) -> Session:
@@ -228,7 +222,16 @@ class ConversationManagerGemini:
 
             # Extract intent and entities
             intent = await self.intent_classifier.classify(message)
-            entities = await self.entity_extractor.extract(message)
+
+            # Use Gemini entity extractor if available
+            if self.use_enhanced_services:
+                entities_with_confidence = await self.entity_extractor_gemini.extract(message, intent=intent)
+                # Convert to simple format: {entity_type: [value1, value2, ...]}
+                entities = {}
+                for entity_type, values in entities_with_confidence.items():
+                    entities[entity_type] = [value for value, conf in values if conf >= 0.5]
+            else:
+                entities = await self.entity_extractor.extract(message)
 
             # Update state
             state.entities.update(entities)
@@ -286,7 +289,10 @@ class ConversationManagerGemini:
             prompt = self._create_workflow_prompt(conversation_context, intent, entities)
             
             # Generate response
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return response.text
             
         except Exception as e:

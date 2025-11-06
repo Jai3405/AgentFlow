@@ -5,7 +5,7 @@ Handles multi-turn conversation states and transitions
 
 from typing import Dict, List, Optional, TypedDict, Annotated, Tuple
 from langgraph.graph import StateGraph, END
-import google.generativeai as genai
+from google import genai
 import os
 
 from models.conversation import ConversationState, Message, MessageRole
@@ -46,17 +46,11 @@ class ConversationGraph:
         # Initialize Gemini
         api_key = os.getenv('GEMINI_API_KEY')
         if api_key:
-            genai.configure(api_key=api_key)
-            # Try newer models first
-            try:
-                self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
-            except:
-                try:
-                    self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
-                except:
-                    self.model = genai.GenerativeModel('gemini-1.5-flash-001')
+            self.client = genai.Client(api_key=api_key)
+            self.model_name = 'gemini-2.5-flash'
             self.llm_enabled = True
         else:
+            self.client = None
             self.llm_enabled = False
             print("Warning: GEMINI_API_KEY not found. LangGraph using rule-based responses.")
 
@@ -256,7 +250,10 @@ Based on the conversation stage and gathered information:
 
 Response:"""
 
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return response.text
 
         except Exception as e:
@@ -351,5 +348,6 @@ Response:"""
             "confidence_score": result["confidence_score"],
             "next_questions": result["next_questions"],
             "workflow_preview": result["workflow_preview"],
-            "stage": result["stage"]
+            "stage": result["stage"],
+            "entities_with_confidence": result.get("entities", {})
         }

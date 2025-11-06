@@ -83,8 +83,15 @@ class ConfidenceScorer:
 
         all_confidences = []
         for entity_list in entities.values():
-            for _, confidence in entity_list:
-                all_confidences.append(confidence)
+            # Handle both formats: [(value, conf), ...] or [value, ...]
+            if entity_list and isinstance(entity_list[0], tuple) and len(entity_list[0]) == 2:
+                # Format with confidence scores
+                for _, confidence in entity_list:
+                    all_confidences.append(confidence)
+            else:
+                # Simple format without confidence scores - assign default confidence
+                for _ in entity_list:
+                    all_confidences.append(0.8)  # Default confidence for simple entities
 
         if not all_confidences:
             return 0.0
@@ -177,13 +184,20 @@ class ConfidenceScorer:
             score += 0.5
 
         # Check if entities have high confidence
-        high_confidence_entities = sum(
-            1 for entity_list in entities.values()
-            for _, conf in entity_list
-            if conf >= 0.8
-        )
+        high_confidence_entities = 0
+        total_entities = 0
+        for entity_list in entities.values():
+            if entity_list:
+                # Handle both formats: [(value, conf), ...] or [value, ...]
+                if isinstance(entity_list[0], tuple) and len(entity_list[0]) == 2:
+                    # Format with confidence scores
+                    high_confidence_entities += sum(1 for _, conf in entity_list if conf >= 0.8)
+                    total_entities += len(entity_list)
+                else:
+                    # Simple format - assume all are high confidence
+                    high_confidence_entities += len(entity_list)
+                    total_entities += len(entity_list)
 
-        total_entities = sum(len(entity_list) for entity_list in entities.values())
         if total_entities > 0:
             score += 0.5 * (high_confidence_entities / total_entities)
 
