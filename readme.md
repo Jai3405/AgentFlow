@@ -2,7 +2,7 @@
 
 # AgentFlow
 
-### Build AI Workflows by Simply Talking
+### Build Agents by Talking to One
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
