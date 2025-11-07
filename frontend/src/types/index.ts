@@ -22,6 +22,7 @@ export interface WorkflowStep {
   type: string;
   name: string;
   description: string;
+  details?: Record<string, any>;
 }
 
 export interface WorkflowConnection {

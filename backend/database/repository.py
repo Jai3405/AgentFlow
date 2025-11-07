@@ -28,7 +28,7 @@ class ConversationRepository:
                 role=MessageRole(msg.role.value),
                 content=msg.content,
                 timestamp=msg.timestamp,
-                metadata=msg.metadata
+                metadata=msg.metadata if isinstance(msg.metadata, dict) else {}
             )
             for msg in db_conv.messages
         ]
